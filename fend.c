@@ -398,6 +398,25 @@ int main(int argc,char *argv[]) {
                 }
             }
 
+            else if (original_rax == SYS_access) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                params[1] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                int open_flag = params[1];
+                if ((open_flag & 0x07) == 4) {
+                    check_file_read(params[0], program, child);
+                    check_parent_exe(params[0], program, child);
+                }
+                //write permission of file
+                if ((open_flag & 0x07) == 2) {
+                    check_file_write(params[0], program, child);
+                    check_parent_exe(params[0], program, child);
+                }
+
+                if ((open_flag & 0x07) == 1) {
+                    check_file_exe(params[0], program, child);
+                    check_parent_exe(params[0], program, child);
+                }
+            }
 
             else if (original_rax == SYS_faccessat) {
                 params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
@@ -425,6 +444,50 @@ int main(int argc,char *argv[]) {
                 check_parent_write(params[0], program, child);
             }
 
+            else if (original_rax == SYS_chdir) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_utime) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_utimes) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_futimesat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_chmod) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_fchmodat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_chown) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_fchownat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_lchown) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
 
             else if (original_rax == SYS_unlink) {
                 params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
@@ -437,7 +500,63 @@ int main(int argc,char *argv[]) {
                 check_parent_exe(params[0], program, child);
             }
 
-          
+            else if (original_rax == SYS_inotify_add_watch) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_file_read(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_lstat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_chroot) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_newfstatat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_statfs) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+            else if (original_rax == SYS_unlinkat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_exe(params[0], program, child);
+                check_parent_write(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_readlink) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_readlink) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_mknod) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_mknodat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_rmdir) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_exe(params[0], program, child);
+            }
 
             else if (original_rax == SYS_link) {
                 params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
@@ -447,7 +566,71 @@ int main(int argc,char *argv[]) {
                 check_parent_exe(params[1], program, child);
             }
 
-            
+            else if (original_rax == SYS_linkat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.r10, NULL);
+                params[1] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_exe(params[0], program, child);
+                check_parent_exe(params[1], program, child);
+            }
+
+            else if (original_rax == SYS_symlink) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_symlinkat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdx, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_acct) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_file_write(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_truncate) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_file_write(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_mkdir) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_mkdirat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_rmdir) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_exe(params[0], program, child);
+            }
+
+            else if (original_rax == SYS_rename) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                params[1] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_write(params[1], program, child);
+                check_parent_exe(params[0], program, child);
+                check_parent_exe(params[1], program, child);
+            }
+
+            else if (original_rax == SYS_renameat) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                params[1] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.r10, NULL);
+                check_parent_write(params[0], program, child);
+                check_parent_write(params[1], program, child);
+                check_parent_exe(params[0], program, child);
+                check_parent_exe(params[1], program, child);
+            }
             
             else if(original_rax == SYS_execve) {
                 params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rdi, NULL);
@@ -456,6 +639,12 @@ int main(int argc,char *argv[]) {
                 }
             }
 
+            else if(original_rax == 362) {
+                params[0] = ptrace(PTRACE_PEEKUSER, child, &user_space->regs.rsi, NULL);
+                if (params[0] != 0) {
+                    check_file_exe(params[0], program, child);
+                }
+            }
 
             ptrace(PTRACE_SYSCALL, child, NULL, NULL);
         }
